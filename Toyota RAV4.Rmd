@@ -19,7 +19,7 @@ library(imputeTS)
 RAV4<-read_xlsx("RAV4.xlsx")
 ```
 
-```{r}
+```{r RAV4}
 RAV4 <- RAV4 %>% pivot_longer(cols = Jan:Dec, names_to = "Month", values_to= "Sales")
 RAV4[RAV4 == 0]<-NA
 RAV4[RAV4 == 15431]<-NA
