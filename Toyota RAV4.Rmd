@@ -1,0 +1,79 @@
+---
+title: "Toyota RAV4"
+author: "Amber Duevel"
+date: "11/28/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(forecast)
+library(gridExtra)
+library(dplyr)
+library(imputeTS)
+```
+
+```{r}
+RAV4<-read_xlsx("RAV4.xlsx")
+```
+
+```{r}
+RAV4 <- RAV4 %>% pivot_longer(cols = Jan:Dec, names_to = "Month", values_to= "Sales")
+RAV4[RAV4 == 0]<-NA
+RAV4[RAV4 == 15431]<-NA
+RAV4.ts<-ts(RAV4$Sales, start=c(2005,1), end=c(2022,10), frequency = 12)
+RAV4.ts<-na_seasplit(RAV4.ts)
+plot(RAV4.ts)
+
+RAV4.ar <-ar(RAV4.ts)
+summary(RAV4.ar)
+
+plot(decompose(RAV4.ts, type="additive"))
+
+RAV4.ar$order
+RAV4.ar$var.pred
+RAV4.ar$partialacf
+
+
+plot1<-plot(forecast(RAV4.ar, h=12))
+plot1
+
+RAV4.ma <- ma(RAV4.ts, order = 12)
+plot(RAV4.ts)
+lines(RAV4.ma, col="red")
+
+RAV4.arima <- arima(RAV4.ts, order = c(1,1,3), seasonal=list(order=c(1,1,1),period=12))
+RAV4.auto.arima<-auto.arima(RAV4.ts)
+RAV4.HoltWinters <- HoltWinters(RAV4.ts)
+RAV4.stl<- stl(RAV4.ts, s.window="periodic")
+
+par(mfrow = c(2,2))
+plot(forecast(RAV4.arima, h=6))
+plot(forecast(RAV4.auto.arima, h=6))
+plot(forecast(RAV4.HoltWinters, h=6))
+plot(forecast(RAV4.stl, h=6))
+
+summary(RAV4.arima)
+
+train <- subset(RAV4.ts, end = length(RAV4.ts)-6)
+test <- subset(RAV4.ts, start = length(RAV4.ts)-5)
+
+RAV4.auto.arima.train <- auto.arima(train)
+RAV4.HoltWinters.train <- HoltWinters(train)
+RAV4.stl.train <- stl(train, s.window="periodic")
+
+p1 <- RAV4.auto.arima.train %>% forecast(h=5) %>% autoplot() + autolayer(test)
+p2 <- RAV4.stl.train %>% forecast(h=5) %>% autoplot() + autolayer(test)
+p3 <- RAV4.HoltWinters.train %>% forecast(h=5) %>% autoplot() + autolayer(test)
+
+grid.arrange(p1,p2,p3)
+
+accuracy(forecast(RAV4.auto.arima.train, h=6),test)
+accuracy(forecast(RAV4.HoltWinters.train, h=6), test)
+accuracy(forecast(RAV4.stl.train, h=6), test)
+
+p4 <- plot(forecast(RAV4.stl, h=12))
+p5 <- plot(forecast(RAV4.stl, h=120))
+```
