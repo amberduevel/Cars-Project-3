@@ -77,3 +77,109 @@ accuracy(forecast(RAV4.stl.train, h=6), test)
 p4 <- plot(forecast(RAV4.stl, h=12))
 p5 <- plot(forecast(RAV4.stl, h=120))
 ```
+
+Camry
+```{r Camry}
+camry = read_xlsx("Camry.xlsx")
+camry = camry %>% pivot_longer(cols = Jan:Dec, names_to = "Month", values_to = "Sales")
+
+camry.ts = ts(camry$Sales, start = c(2005,1), end = c(2022,10), frequency = 12)
+camry.ma = ma(camry.ts, order = 12)
+plot(camry.ts)
+lines(camry.ma, col = "red")
+
+camry.ts2 = ts(camry, start = c(2005,1), end = c(2022,10), frequency = 12)
+plot(camry.ts2)
+
+plot(decompose(camry.ts))
+
+camry.ar = ar(camry.ts)
+summary(camry.ar)
+
+camry.ar$order
+camry.ar$var.pred
+camry.ar$partialacf
+
+plot(forecast(camry.ar, h = 12))
+plot(forecast(camry.ar, h = 24))
+```
+
+```{r Camry test/train and predict}
+cam_train = subset(camry.ts, end = length(camry.ts)-5)
+cam_test = subset(camry.ts, start = length(camry.ts)-4)
+
+cam_arima.train = auto.arima(cam_train)
+cam_stl.train = stl(cam_train, s.window = "periodic")
+cam_hw.train = HoltWinters(cam_train)
+
+accuracy(forecast(cam_arima.train, h = 5),cam_test)
+accuracy(forecast(cam_stl.train, h = 5), cam_test)
+accuracy(forecast(cam_hw.train, h = 5), cam_test)
+
+cam_p1 = cam_arima.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cam_test)
+cam_p2 = cam_stl.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cam_test)
+cam_p3 = cam_hw.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cam_test)
+grid.arrange(cam_p1, cam_p2, cam_p3)
+```
+
+Corolla
+```{r Corolla}
+corolla = read_xlsx("Corolla.xlsx")
+corolla = corolla %>% pivot_longer(cols = Jan:Dec, names_to = "Month", values_to = "Sales")
+
+#corolla[corolla == 0] <- NA
+corolla.ts <- ts(corolla$Sales, start = c(2005,1), end = c(2022,10), frequency = 12)
+#corolla.ts = na_seasplit(corolla.ts)
+
+corolla.ma = ma(corolla.ts, order = 12)
+plot(corolla.ts)
+lines(corolla.ma, col = "red")
+
+corolla.ts2 = ts(corolla, start = c(2005,1), end = c(2022,10), frequency = 12)
+plot(corolla.ts2)
+
+plot(decompose(corolla.ts))
+
+corolla.ar = ar(corolla.ts)
+summary(corolla.ar)
+
+corolla.ar$order
+corolla.ar$var.pred
+corolla.ar$partialacf
+
+plot(forecast(corolla.ar, h = 12))
+plot(forecast(corolla.ar, h = 24))
+```
+
+```{r Corolla test/train and predict}
+cor_train = subset(corolla.ts, end = length(corolla.ts)-5)
+cor_test = subset(corolla.ts, start = length(corolla.ts)-4)
+
+cor_arima.train = auto.arima(cor_train)
+cor_stl.train = stl(cor_train, s.window = "periodic")
+cor_hw.train = HoltWinters(cor_train)
+
+accuracy(forecast(cor_arima.train, h = 5),cor_test)
+accuracy(forecast(cor_stl.train, h = 5), cor_test)
+accuracy(forecast(cor_hw.train, h = 5), cor_test)
+
+cor_p1 = cor_arima.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cor_test)
+cor_p2 = cor_stl.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cor_test)
+cor_p3 = cor_hw.train %>% 
+  forecast(h = 5) %>%
+  autoplot() + autolayer(cor_test)
+grid.arrange(cor_p1, cor_p2, cor_p3)
+
+plot(forecast(stl(corolla.ts, s.window = "periodic"), h = 12))
+plot(forecast(stl(corolla.ts, s.window = "periodic"), h = 120))
+```
