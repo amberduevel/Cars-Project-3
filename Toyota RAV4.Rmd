@@ -126,6 +126,9 @@ cam_p3 = cam_hw.train %>%
   forecast(h = 5) %>%
   autoplot() + autolayer(cam_test)
 grid.arrange(cam_p1, cam_p2, cam_p3)
+
+plot(forecast(HoltWinters(camry.ts), h = 12))
+plot(forecast(HoltWinters(camry.ts), h = 120))
 ```
 
 Corolla
